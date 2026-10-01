@@ -32,10 +32,10 @@
   vars:
     keystone: "{{ keystone_services['keystone'] }}"
   become: true
-  template:
+  copy:
     src: "{{ item.metadata_folder }}/"
     dest: "{{ keystone_host_federation_oidc_metadata_folder }}"
-    mode: "0660"
+    mode: "0770"
   with_items: "{{ keystone_identity_providers }}"
   when:
     - item.protocol == 'openid'
