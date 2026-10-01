@@ -1,3 +1,24 @@
+# our stuff
+*.pyc
+*.img
+*~
+*.keyring
+doc/
+init-vpn
+requirements-core.yml
+requirements.yml
+setup.cfg
+tools/
+etc/kolla/admin-openrc.sh
+etc/kolla/clouds.yaml
+etc/kolla/passwords.yml
+*pem
+etc/kolla/octavia-openrc.sh
+etc/kolla/octavia-certificates/
+*openrc*sh
+*NOT_USED*
+
+## their stuff
 # vim and emacs temp files
 *~
 [._]*.s[a-w][a-z]
