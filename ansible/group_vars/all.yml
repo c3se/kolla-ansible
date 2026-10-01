@@ -506,8 +506,8 @@ ironic_prometheus_exporter_port: "9608"
 iscsi_port: "3260"
 
 keystone_public_port: "{{ haproxy_single_external_frontend_public_port if haproxy_single_external_frontend | bool else keystone_public_listen_port }}"
-keystone_public_listen_port: "5000"
-keystone_internal_port: "5000"
+keystone_public_listen_port: "5001"
+keystone_internal_port: "5001"
 keystone_internal_listen_port: "{{ keystone_internal_port }}"
 
 keystone_ssh_port: "8023"
