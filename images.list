@@ -1,0 +1,11 @@
+IMAGE_DIR=/root/images
+
+IMAGES_NAMES_LINKS=(\
+"Rocky-8-GenericCloud-Base.latest.x86_64.qcow2 rocky8-x86_64 https://dl.rockylinux.org/pub/rocky/8/images/x86_64/Rocky-8-GenericCloud-Base.latest.x86_64.qcow2" \
+"Rocky-9-GenericCloud-Base.latest.x86_64.qcow2 rocky9-x86_64 https://dl.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2" \
+"CentOS-Stream-GenericCloud-x86_64-9-latest.x86_64.qcow2 centos9-x86_64 https://cloud.centos.org/centos/9-stream/x86_64/images/CentOS-Stream-GenericCloud-x86_64-9-latest.x86_64.qcow2" \
+"cirros-0.5.2-x86_64-disk.img cirros-0.5.2-x86_64 https://download.cirros-cloud.net/0.5.2/cirros-0.5.2-x86_64-disk.img" \
+"cirros-0.6.2-x86_64-disk.img cirros-0.6.2-x86_64 https://download.cirros-cloud.net/0.6.2/cirros-0.6.2-x86_64-disk.img" \
+"jammy-server-cloudimg-amd64-disk-kvm.img ubuntu-22.04-amd64-kvm https://cloud-images.ubuntu.com/jammy/20240403/jammy-server-cloudimg-amd64-disk-kvm.img" \
+"ubuntu-22.04-server-cloudimg-amd64.img ubuntu-22.04-server-amd64 https://cloud-images.ubuntu.com/releases/22.04/release/ubuntu-22.04-server-cloudimg-amd64.img" \
+)
