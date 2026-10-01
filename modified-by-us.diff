@@ -1,0 +1,117 @@
+diff --git a/ansible/group_vars/all.yml b/ansible/group_vars/all.yml
+index 10da28e8f..b875d8733 100644
+--- a/ansible/group_vars/all.yml
++++ b/ansible/group_vars/all.yml
+@@ -492,8 +492,8 @@ ironic_prometheus_exporter_port: "9608"
+ iscsi_port: "3260"
+ 
+ keystone_public_port: "{{ haproxy_single_external_frontend_public_port if haproxy_single_external_frontend | bool else keystone_public_listen_port }}"
+-keystone_public_listen_port: "5000"
+-keystone_internal_port: "5000"
++keystone_public_listen_port: "5001"
++keystone_internal_port: "5001"
+ keystone_internal_listen_port: "{{ keystone_internal_port }}"
+ 
+ keystone_ssh_port: "8023"
+diff --git a/ansible/inventory/multinode b/ansible/inventory/multinode
+index a12c51dc9..b240ee4da 100644
+--- a/ansible/inventory/multinode
++++ b/ansible/inventory/multinode
+@@ -2,9 +2,9 @@
+ # additional groups are for more control of the environment.
+ [control]
+ # These hostname must be resolvable from your deployment host
+-control01
+-control02
+-control03
++dev-cirrus-s1
++dev-cirrus-s2
++dev-cirrus-s3
+ 
+ # The above can also be specified as follows:
+ #control[01:03]     ansible_user=kolla
+@@ -12,14 +12,40 @@ control03
+ # The network nodes are where your l3-agent and loadbalancers will run
+ # This can be the same as a host in the control group
+ [network]
+-network01
+-network02
++dev-cirrus-s1
++dev-cirrus-s2
++dev-cirrus-s3
+ 
+ [compute]
+-compute01
++dev-cirrus-c01
++dev-cirrus-c02
++dev-cirrus-c03
++dev-cirrus-c04
++dev-cirrus-c05
++dev-cirrus-c06
++dev-cirrus-c07
++dev-cirrus-c08
++dev-cirrus-c09
++dev-cirrus-c10
++dev-cirrus-c11
++#dev-cirrus-c12
+ 
+ [monitoring]
+-monitoring01
++dev-cirrus-s1
++dev-cirrus-s2
++dev-cirrus-s3
++dev-cirrus-c01
++dev-cirrus-c02
++dev-cirrus-c03
++dev-cirrus-c04
++dev-cirrus-c05
++dev-cirrus-c06
++dev-cirrus-c07
++dev-cirrus-c08
++dev-cirrus-c09
++dev-cirrus-c10
++dev-cirrus-c11
++#dev-cirrus-c12
+ 
+ # When compute nodes and control nodes use different interfaces,
+ # you need to comment out "api_interface" and other interfaces from the globals.yml
+@@ -27,7 +53,21 @@ monitoring01
+ #compute01 neutron_external_interface=eth0 api_interface=em1 tunnel_interface=em1
+ 
+ [storage]
+-storage01
++dev-cirrus-s1
++dev-cirrus-s2
++dev-cirrus-s3
++dev-cirrus-c01
++dev-cirrus-c02
++dev-cirrus-c03
++dev-cirrus-c04
++dev-cirrus-c05
++dev-cirrus-c06
++dev-cirrus-c07
++dev-cirrus-c08
++dev-cirrus-c09
++dev-cirrus-c10
++dev-cirrus-c11
++#dev-cirrus-c12
+ 
+ [deployment]
+ localhost       ansible_connection=local
+diff --git a/ansible/roles/keystone/tasks/config-federation-oidc.yml b/ansible/roles/keystone/tasks/config-federation-oidc.yml
+index 51cd41d4e..0d3150842 100644
+--- a/ansible/roles/keystone/tasks/config-federation-oidc.yml
++++ b/ansible/roles/keystone/tasks/config-federation-oidc.yml
+@@ -32,10 +32,10 @@
+   vars:
+     keystone: "{{ keystone_services['keystone'] }}"
+   become: true
+-  template:
++  copy:
+     src: "{{ item.metadata_folder }}/"
+     dest: "{{ keystone_host_federation_oidc_metadata_folder }}"
+-    mode: "0660"
++    mode: "0770"
+   with_items: "{{ keystone_identity_providers }}"
+   when:
+     - item.protocol == 'openid'
