@@ -1,4 +1,7 @@
 # our stuff
+etc/kolla/config/keystone/oidc_metadata/
+etc_examples/
+etc/kolla/passwords.yml.bakup
 *.pyc
 *.img
 *~
