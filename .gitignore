@@ -1,7 +1,7 @@
 # our stuff
-etc/kolla/config/keystone/oidc_metadata/
+#etc/kolla/config/keystone/oidc_metadata/
 etc_examples/
-etc/kolla/passwords.yml.bakup
+etc/kolla/passwords.yml*
 *.pyc
 *.img
 *~
@@ -20,6 +20,7 @@ etc/kolla/octavia-openrc.sh
 etc/kolla/octavia-certificates/
 *openrc*sh
 *NOT_USED*
+etc/kolla/config/keystone/oidc_metadata/auth.c3se.chalmers.se%2Frealms%2Fdev-cirrus.client
 
 ## their stuff
 # vim and emacs temp files
