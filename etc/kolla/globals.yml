@@ -517,6 +517,12 @@ enable_redis: "yes"
 #rabbitmq_enable_tls: "no"
 # CA certificate bundle in RabbitMQ container.
 #rabbitmq_cacert: "/etc/ssl/certs/{{ 'ca-certificates.crt' if kolla_base_distro in ['debian', 'ubuntu'] else 'ca-bundle.trust.crt' }}"
+om_enable_queue_manager: true
+om_enable_rabbitmq_quorum_queues: true
+om_enable_rabbitmq_transient_quorum_queue: true
+om_enable_rabbitmq_stream_fanout: true
+
+
 
 #################
 # MariaDB options
