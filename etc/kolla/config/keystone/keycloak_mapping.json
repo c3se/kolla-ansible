@@ -1,0 +1,21 @@
+[
+        {
+            "local": [
+                {
+                    "user": {
+			"name": "{0}",
+		        "type": "local",
+			"domain": {
+			    "name": "default"
+		        }
+                    }
+                }
+
+            ],
+            "remote": [
+                {
+                    "type": "OIDC-preferred_username"
+                }
+            ]
+        }
+    ]
