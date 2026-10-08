@@ -285,15 +285,17 @@ external_api_firewalld_zone: "public"
 # TLS can be enabled.  When TLS is enabled, certificates must be provided to
 # allow clients to perform authentication.
 #kolla_enable_tls_internal: "no"
+#kolla_enable_tls_external: "{{ kolla_enable_tls_internal if kolla_same_external_internal_vip | bool else 'no' }}"
 kolla_enable_tls_external: "yes"
 #kolla_certificates_dir: "{{ node_config }}/certificates"
 #kolla_external_fqdn_cert: "{{ kolla_certificates_dir }}/haproxy.pem"
 #kolla_internal_fqdn_cert: "{{ kolla_certificates_dir }}/haproxy-internal.pem"
 openstack_cacert: "/etc/pki/tls/certs/ca-bundle.crt"
 kolla_admin_openrc_cacert: "{{ openstack_cacert }}"
-kolla_copy_ca_into_containers: "yes"
+kolla_copy_ca_into_containers: "no"
 #haproxy_backend_cacert: "{{ 'ca-certificates.crt' if kolla_base_distro in ['debian', 'ubuntu'] else 'ca-bundle.trust.crt' }}"
 #haproxy_backend_cacert_dir: "/etc/ssl/certs"
+#database_enable_tls_backend: "{{ 'yes' if kolla_enable_tls_backend | bool and enable_proxysql | bool else 'no' }}"
 
 
 ##################
@@ -521,7 +523,7 @@ om_enable_queue_manager: true
 om_enable_rabbitmq_quorum_queues: true
 om_enable_rabbitmq_transient_quorum_queue: true
 om_enable_rabbitmq_stream_fanout: true
-
+rabbitmq_image: "{{ docker_registry ~ '/' if docker_registry else '' }}{{ docker_namespace }}/rabbitmq-4-1"
 
 
 #################
