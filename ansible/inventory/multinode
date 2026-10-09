@@ -28,7 +28,7 @@ dev-cirrus-c08
 dev-cirrus-c09
 dev-cirrus-c10
 dev-cirrus-c11
-dev-cirrus-c12
+#dev-cirrus-c12
 
 [monitoring]
 dev-cirrus-s1
@@ -45,7 +45,7 @@ dev-cirrus-c08
 dev-cirrus-c09
 dev-cirrus-c10
 dev-cirrus-c11
-dev-cirrus-c12
+#dev-cirrus-c12
 
 # When compute nodes and control nodes use different interfaces,
 # you need to comment out "api_interface" and other interfaces from the globals.yml
@@ -67,7 +67,7 @@ dev-cirrus-c08
 dev-cirrus-c09
 dev-cirrus-c10
 dev-cirrus-c11
-dev-cirrus-c12
+#dev-cirrus-c12
 
 [deployment]
 localhost       ansible_connection=local
