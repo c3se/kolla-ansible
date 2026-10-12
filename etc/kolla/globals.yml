@@ -44,6 +44,7 @@ workaround_ansible_issue_8743: yes
 
 # Valid options are ['centos', 'debian', 'rocky', 'ubuntu']
 kolla_base_distro: "rocky"
+kolla_base_distro_version: "{{ ansible_facts.distribution_major_version }}"
 
 # Do not override this unless you know what you are doing.
 #openstack_release: "2025.1"
