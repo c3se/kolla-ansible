@@ -2,9 +2,9 @@
 # additional groups are for more control of the environment.
 [control]
 # These hostname must be resolvable from your deployment host
-control01
-control02
-control03
+dev-cirrus-s1 ansible_python_interpreter=/usr/bin/python3.12 
+dev-cirrus-s2 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-s3 ansible_python_interpreter=/usr/bin/python3.12
 
 # The above can also be specified as follows:
 #control[01:03]     ansible_user=kolla
@@ -12,14 +12,40 @@ control03
 # The network nodes are where your l3-agent and loadbalancers will run
 # This can be the same as a host in the control group
 [network]
-network01
-network02
+dev-cirrus-s1 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-s2 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-s3 ansible_python_interpreter=/usr/bin/python3.12
 
 [compute]
-compute01
+dev-cirrus-c01 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c02 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c03 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c04 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c05 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c06 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c07 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c08 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c09 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c10 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c11 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c12 ansible_python_interpreter=/usr/bin/python3.12
 
 [monitoring]
-monitoring01
+dev-cirrus-s1 ansible_python_interpreter=/usr/bin/python3.12 
+dev-cirrus-s2 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-s3 ansible_python_interpreter=/usr/bin/python3.12 
+dev-cirrus-c01 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c02 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c03 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c04 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c05 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c06 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c07 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c08 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c09 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c10 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c11 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c12 ansible_python_interpreter=/usr/bin/python3.12
 
 # When compute nodes and control nodes use different interfaces,
 # you need to comment out "api_interface" and other interfaces from the globals.yml
@@ -27,7 +53,21 @@ monitoring01
 #compute01 neutron_external_interface=eth0 api_interface=em1 tunnel_interface=em1
 
 [storage]
-storage01
+dev-cirrus-s1 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-s2 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-s3 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c01 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c02 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c03 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c04 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c05 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c06 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c07 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c08 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c09 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c10 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c11 ansible_python_interpreter=/usr/bin/python3.12
+dev-cirrus-c12 ansible_python_interpreter=/usr/bin/python3.12
 
 [deployment]
 localhost       ansible_connection=local
@@ -161,10 +201,6 @@ control
 deployment
 
 [skyline:children]
-control
-
-# TODO(vurmil): Remove after G/2026.1 release as Redis migration is no longer required
-[redis:children]
 control
 
 [valkey:children]
@@ -611,3 +647,4 @@ letsencrypt
 
 [letsencrypt-lego:children]
 letsencrypt
+
