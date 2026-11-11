@@ -599,6 +599,7 @@ ceph_manila_user: "manila"
 ############### Begin OIDC ##################################
 
 # NB: I believe we can automate the creation of the specific config files.
+keystone_wsgi_socket_port: "5002"
 
 keystone_identity_providers:
   - name: "c3se_auth"
@@ -613,7 +614,7 @@ keystone_identity_mappings:
   - name: "standard_oidc"
     file: "/etc/kolla/config/keystone/keycloak_mapping.json" # probably static
 
-############### End OIDC ####################################
+################## End OIDC ####################################
 
 #keystone_admin_user: "admin"
 
