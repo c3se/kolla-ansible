@@ -5,6 +5,9 @@
 # commented parameters are shown here, To override the default value uncomment
 # the parameter and change its value.
 
+# Dummy variable to allow Ansible to accept this file.
+workaround_ansible_issue_8743: yes
+
 ###################
 # Ansible options
 ###################
@@ -21,14 +24,17 @@
 # By default, we do not provide a gather subset.
 #kolla_ansible_setup_gather_subset: "{{ omit }}"
 
-# Dummy variable to allow Ansible to accept this file.
-workaround_ansible_issue_8743: yes
-
 # This variable may be used to set the maximum failure percentage for all
 # plays. More fine-grained control is possible via per-service variables, e.g.
 # nova_max_fail_percentage. The default behaviour is to set a max fail
 # percentage of 100, which is equivalent to not setting it.
 #kolla_max_fail_percentage:
+
+# This variable determines which hosts require facts when using --limit. Facts
+# will be gathered using delegation for hosts in this list that are not
+# included in the limit.
+# By default, this list includes all hosts.
+#kolla_ansible_delegate_facts_hosts: "{{ groups['all'] }}"
 
 ###############
 # Kolla options
@@ -38,9 +44,10 @@ workaround_ansible_issue_8743: yes
 
 # Valid options are ['centos', 'debian', 'rocky', 'ubuntu']
 kolla_base_distro: "rocky"
+kolla_base_distro_version: "{{ ansible_facts.distribution_major_version }}"
 
 # Do not override this unless you know what you are doing.
-#openstack_release: "2024.2"
+#openstack_release: "2025.1"
 
 # Docker image tag used by default.
 #openstack_tag: "{{ openstack_release ~ openstack_tag_suffix }}"
@@ -88,6 +95,7 @@ kolla_external_fqdn: "cloud.swesrc.chalmers.se"
 # Container engine
 ##################
 
+# Set desired container engine to deploy on or migrate to
 # Valid options are [ docker, podman ]
 #kolla_container_engine: docker
 
@@ -100,14 +108,14 @@ kolla_external_fqdn: "cloud.swesrc.chalmers.se"
 
 ### We have our own registry running on cirrus-deploy as suggested on
 ### https://docs.openstack.org/project-deploy-guide/kolla-ansible/2023.2/multinode.html
-docker_registry: docker.io
+#docker_registry: 172.17.0.1:4000
 # Please read the docs carefully before applying docker_registry_insecure.
 #docker_registry_insecure: yes
-docker_registry_username: swsrc
+#docker_registry_username:
 # docker_registry_password is set in the passwords.yml file.
 
 # Namespace of images:
-docker_namespace: "swsrc"
+#docker_namespace: "kolla"
 
 # Docker client timeout in seconds.
 #docker_client_timeout: 120
@@ -163,8 +171,6 @@ tunnel_interface: "bond0.1039"
 #network_address_family: "ipv4"
 #api_address_family: "{{ network_address_family }}"
 #storage_address_family: "{{ network_address_family }}"
-#swift_storage_address_family: "{{ storage_address_family }}"
-#swift_replication_address_family: "{{ swift_storage_address_family }}"
 #migration_address_family: "{{ api_address_family }}"
 #tunnel_address_family: "{{ network_address_family }}"
 #octavia_network_address_family: "{{ api_address_family }}"
@@ -177,8 +183,8 @@ tunnel_interface: "bond0.1039"
 # addresses for that reason.
 #neutron_external_interface: "bond0,bond0.12"
 #neutron_bridge_name: "br-bond-ex1,br-vlan-ex2"
-#neutron_external_interface: "bond0"
 
+#neutron_external_interface: "bond0" 
 neutron_external_interface: "bond0,bond0.1044"
 neutron_bridge_name: "br-ex,br-cephfs"
 
@@ -200,7 +206,7 @@ neutron_vlan_ranges: "physnet2:1044:1044"
 ################ Dejan end (Manila) ##################################
 
 
-# Valid options are [ openvswitch, ovn, linuxbridge, vmware_nsxv, vmware_nsxv3, vmware_nsxp, vmware_dvs ]
+# Valid options are [ openvswitch, ovn, vmware_nsxv, vmware_nsxv3, vmware_nsxp, vmware_dvs ]
 # if vmware_nsxv3 or vmware_nsxp is selected, enable_openvswitch MUST be set to "no" (default is yes)
 # Do note linuxbridge is *EXPERIMENTAL* in Neutron since Zed and it requires extra tweaks to config to be usable.
 # For details, see: https://docs.openstack.org/neutron/latest/admin/config-experimental-framework.html
@@ -227,7 +233,7 @@ neutron_plugin_agent: "ovn"
 # Arbitrary unique number from 0..255
 # This should be changed from the default in the event of a multi-region deployment
 # where the VIPs of different regions reside on a common subnet.
-#keepalived_virtual_router_id: "51"
+keepalived_virtual_router_id: "51"
 
 ###################
 # Dimension options
@@ -280,15 +286,17 @@ external_api_firewalld_zone: "public"
 # TLS can be enabled.  When TLS is enabled, certificates must be provided to
 # allow clients to perform authentication.
 #kolla_enable_tls_internal: "no"
+#kolla_enable_tls_external: "{{ kolla_enable_tls_internal if kolla_same_external_internal_vip | bool else 'no' }}"
 kolla_enable_tls_external: "yes"
 #kolla_certificates_dir: "{{ node_config }}/certificates"
 #kolla_external_fqdn_cert: "{{ kolla_certificates_dir }}/haproxy.pem"
 #kolla_internal_fqdn_cert: "{{ kolla_certificates_dir }}/haproxy-internal.pem"
 openstack_cacert: "/etc/pki/tls/certs/ca-bundle.crt"
 kolla_admin_openrc_cacert: "{{ openstack_cacert }}"
-kolla_copy_ca_into_containers: "yes"
+kolla_copy_ca_into_containers: "no"
 #haproxy_backend_cacert: "{{ 'ca-certificates.crt' if kolla_base_distro in ['debian', 'ubuntu'] else 'ca-bundle.trust.crt' }}"
 #haproxy_backend_cacert_dir: "/etc/ssl/certs"
+#database_enable_tls_backend: "{{ 'yes' if kolla_enable_tls_backend | bool and enable_proxysql | bool else 'no' }}"
 
 
 ##################
@@ -320,12 +328,24 @@ kolla_copy_ca_into_containers: "yes"
 enable_letsencrypt: "yes"
 letsencrypt_email: "tekniker@c3se.chalmers.se"
 
+# Establishes the key type for letsencrypt lego
+# Some servers may require a different key type than the default.
+# See lego docs for possible options.
+#letsencrypt_key_type: "ec256"
+
 ####################
 # LetsEncrypt certificate server options
 ####################
 #letsencrypt_cert_server: "https://acme-v02.api.letsencrypt.org/directory"
 # attempt to renew Let's Encrypt certificate every 12 hours
 letsencrypt_cron_renew_schedule:  "0   */12   *   *   *"
+
+####################
+# LetsEncrypt external account binding options
+####################
+#letsencrypt_external_account_binding: "no"
+#letsencrypt_eab_hmac: ""
+#letsencrypt_eab_key_id: ""
 
 ################
 # Region options
@@ -362,7 +382,6 @@ haproxy_connect_timeout: 10s
 #enable_keepalived: "{{ enable_haproxy | bool }}"
 #enable_keystone: "{{ enable_openstack_core | bool }}"
 #enable_mariadb: "yes"
-enable_mariabackup: "yes"
 #enable_memcached: "yes"
 #enable_neutron: "{{ enable_openstack_core | bool }}"
 #enable_nova: "{{ enable_openstack_core | bool }}"
@@ -389,6 +408,8 @@ enable_cinder_backend_nfs: "no"
 #enable_cinder_backend_pure_iscsi: "no"
 #enable_cinder_backend_pure_fc: "no"
 #enable_cinder_backend_pure_roce: "no"
+#enable_cinder_backend_pure_nvme_tcp: "no"
+#enable_cinder_backend_lightbits: "no"
 #enable_cloudkitty: "no"
 #enable_collectd: "no"
 #enable_cyborg: "no"
@@ -415,11 +436,12 @@ enable_fluentd: "yes"
 #enable_horizon_octavia: "{{ enable_octavia | bool }}"
 #enable_horizon_tacker: "{{ enable_tacker | bool }}"
 #enable_horizon_trove: "{{ enable_trove | bool }}"
+#enable_horizon_venus: "{{ enable_venus | bool }}"
 #enable_horizon_watcher: "{{ enable_watcher | bool }}"
 #enable_horizon_zun: "{{ enable_zun | bool }}"
 #enable_influxdb: "{{ enable_cloudkitty | bool and cloudkitty_storage_backend == 'influxdb' }}"
 #enable_ironic: "no"
-#enable_ironic_neutron_agent: "{{ enable_neutron | bool and enable_ironic | bool }}"
+#enable_ironic_neutron_agent: "no"
 #enable_ironic_prometheus_exporter: "{{ enable_ironic | bool and enable_prometheus | bool }}"
 #enable_iscsid: "{{ enable_cinder | bool and enable_cinder_backend_iscsi | bool }}"
 #enable_kuryr: "no"
@@ -430,7 +452,7 @@ enable_manila_backend_generic: "yes"
 enable_manila_backend_cephfs_native: "yes"
 #enable_manila_backend_cephfs_nfs: "no"
 #enable_manila_backend_glusterfs_nfs: "no"
-#enable_mariabackup: "no"
+enable_mariabackup: "yes"
 #enable_masakari: "no"
 #enable_mistral: "no"
 #enable_multipathd: "no"
@@ -456,7 +478,7 @@ enable_octavia: "yes"
 #enable_opensearch: "{{ enable_central_logging | bool or enable_osprofiler | bool or (enable_cloudkitty | bool and cloudkitty_storage_backend == 'elasticsearch') }}"
 #enable_opensearch_dashboards: "{{ enable_opensearch | bool }}"
 #enable_opensearch_dashboards_external: "{{ enable_opensearch_dashboards | bool }}"
-#enable_openvswitch: "{{ enable_neutron | bool and neutron_plugin_agent != 'linuxbridge' }}"
+#enable_openvswitch: "{{ enable_neutron }}"
 #enable_ovn: "{{ enable_neutron | bool and neutron_plugin_agent == 'ovn' }}"
 #enable_ovs_dpdk: "no"
 #enable_osprofiler: "no"
@@ -465,12 +487,11 @@ enable_octavia: "yes"
 #enable_proxysql: "no"
 enable_redis: "yes"
 #enable_skyline: "no"
-#enable_swift: "no"
-#enable_swift_s3api: "no"
 #enable_tacker: "no"
 #enable_telegraf: "no"
 #enable_trove: "no"
 #enable_trove_singletenant: "no"
+enable_valkey: "no"
 #enable_venus: "no"
 #enable_watcher: "no"
 #enable_zun: "no"
@@ -502,13 +523,12 @@ enable_redis: "yes"
 #rabbitmq_enable_tls: "no"
 # CA certificate bundle in RabbitMQ container.
 #rabbitmq_cacert: "/etc/ssl/certs/{{ 'ca-certificates.crt' if kolla_base_distro in ['debian', 'ubuntu'] else 'ca-bundle.trust.crt' }}"
-
 om_enable_queue_manager: true
 om_enable_rabbitmq_quorum_queues: true
 om_enable_rabbitmq_transient_quorum_queue: true
 om_enable_rabbitmq_stream_fanout: true
-
 rabbitmq_image: "{{ docker_registry ~ '/' if docker_registry else '' }}{{ docker_namespace }}/rabbitmq-4-1"
+
 
 #################
 # MariaDB options
@@ -522,18 +542,19 @@ rabbitmq_image: "{{ docker_registry ~ '/' if docker_registry else '' }}{{ docker
 # External Ceph - cephx auth enabled (this is the standard nowadays, defaults to yes)
 #external_ceph_cephx_enabled: "yes"
 
+# Glance - OS images (Rocky, Ubuntu, ...)
 # Glance -- glance_user and keyring are defined here, mostly for
 # file naming conventions
 # Actual ceph user and ceph pools used are definded in glance-api.conf and
 # ceph-flash.conf
 ceph_glance_user: "cirrus.glance"
 ceph_glance_keyring: "client.{{ ceph_glance_user }}.keyring"
-#ceph_glance_pool_name: "cirrus-cec-1.glance-images"
+ceph_glance_pool_name: "cirrus.glance"
 
-# Cinder -- defined per backend below
-#ceph_cinder_user: "cirrus-cec-1.cinder"
-#ceph_cinder_keyring: "client.{{ ceph_cinder_user }}.keyring"
-#ceph_cinder_pool_name: "cirrus-cec-1.cinder-volumes"
+# Cinder - Block Storage Volumes for VMs 
+ceph_cinder_user: "cirrus.cinder-volumes"
+ceph_cinder_keyring: "client.{{ ceph_cinder_user }}.keyring"
+ceph_cinder_pool_name: "cirrus.cinder-volumes"
 
 # Cinder-backup
 ceph_cinder_backup_user: "cirrus.cinder-backup"
@@ -541,14 +562,16 @@ ceph_cinder_backup_keyring: "client.{{ ceph_cinder_backup_user }}.keyring"
 ceph_cinder_backup_pool_name: "cirrus.cinder-backup"
 
 # Nova -- not used anymore as we use the on-board NVMEs as nova-storage
+# Nova
 ceph_nova_user: "cirrus.nova"
 ceph_nova_keyring: "client.{{ ceph_nova_user }}.keyring"
 ceph_nova_pool_name: "cirrus.nova"
 
 # Gnocchi
 #ceph_gnocchi_user: "gnocchi"
-#ceph_gnocchi_keyring: "client.{{ ceph_gnocchi_user }}.keyring"
+##ceph_gnocchi_keyring: "client.{{ ceph_gnocchi_user }}.keyring"
 #ceph_gnocchi_pool_name: "gnocchi"
+
 # Manila
 ceph_manila_user: "manila"
 ceph_manila_keyring: "client.{{ ceph_manila_user }}.keyring"
@@ -556,6 +579,23 @@ ceph_manila_keyring: "client.{{ ceph_manila_user }}.keyring"
 #############################
 # Keystone - Identity Options
 #############################
+
+####### Begin OIDC ########
+
+keystone_identity_providers:
+  - name: "c3se_auth"
+    openstack_domain: "default" # probably static
+    protocol: "openid"
+    identifier: "https://auth.c3se.chalmers.se/realms/cirrus" # template this
+    public_name: "OIDC via SUPR"
+    attribute_mapping: "standard_oidc"
+    metadata_folder: "/etc/kolla/config/keystone/oidc_metadata"
+    certificate_file: "/etc/kolla/config/keystone/_3llQ9LK75Bp7Y1A0U7NDO5ZczLPVOie17E2p4Y1uV0.pem"
+
+keystone_identity_mappings:
+  - name: "standard_oidc"
+    file: "/etc/kolla/config/keystone/keycloak_mapping.json" # probably static
+####### End OIDC ########
 
 #keystone_admin_user: "admin"
 
@@ -575,29 +615,12 @@ keystone_internal_port: "5001"
 # reconfigured
 #update_keystone_service_user_passwords: "true"
 
-####### Begin OIDC ########
-
-keystone_identity_providers:
-  - name: "c3se_auth"
-    openstack_domain: "default" # probably static
-    protocol: "openid"
-    identifier: "https://auth.c3se.chalmers.se/realms/cirrus" # template this
-    public_name: "OIDC via SUPR"
-    attribute_mapping: "standard_oidc"
-    metadata_folder: "/etc/kolla/config/keystone/oidc_metadata"
-    certificate_file: "/etc/kolla/config/keystone/_3llQ9LK75Bp7Y1A0U7NDO5ZczLPVOie17E2p4Y1uV0.pem"
-
-keystone_identity_mappings:
-  - name: "standard_oidc"
-    file: "/etc/kolla/config/keystone/keycloak_mapping.json" # probably static
-####### End OIDC ########
-
-
 ########################
 # Glance - Image Options
 ########################
 # Configure image backend.
 glance_backend_ceph: "yes"
+glance_backend_file: "no"
 
 glance_ceph_backends:
   - name: "rbd-flash"
@@ -611,7 +634,7 @@ glance_ceph_backends:
 #    #not actually used: user: "cirrus-cec-1.glance"        
 #    #not actually used: pool: "cirrus-cec-1.glance-images"
 
-glance_backend_file: "no"
+
 #glance_backend_swift: "no"
 #glance_backend_vmware: "no"
 #glance_backend_s3: "no"
@@ -647,11 +670,11 @@ glance_backend_file: "no"
 #################
 # Gnocchi options
 #################
-# Valid options are [ file, ceph, swift ]
-#gnocchi_backend_storage: "{% if enable_swift | bool %}swift{% else %}file{% endif %}"
+# Valid options are [ file, ceph ]
+#gnocchi_backend_storage: "file"
 
 # Valid options are [redis, '']
-#gnocchi_incoming_storage: "{{ 'redis' if enable_redis | bool else '' }}"
+#gnocchi_incoming_storage: "{{ 'valkey' if enable_valkey | bool else 'redis' if enable_redis | bool else '' }}"
 
 ################################
 # Cinder - Block Storage Options
@@ -701,10 +724,10 @@ cinder_cluster_name: "rbd_cinder_cluster"
 #cinder_backend_vmwarevc_vmdk: "no"
 #cinder_backend_vmware_vstorage_object: "no"
 #cinder_volume_group: "cinder-volumes"
-# Valid options are [ '', redis, etcd ]
-#cinder_coordination_backend: "{{ 'redis' if enable_redis|bool else 'etcd' if enable_etcd|bool else '' }}"
+# Valid options are [ '', etcd, redis, valkey ]
+#cinder_coordination_backend: "{{ 'valkey' if enable_valkey | bool else 'redis' if enable_redis|bool else 'etcd' if enable_etcd | bool else '' }}"
 
-# Valid options are [ nfs, swift, ceph, s3 ]
+# Valid options are [ nfs, ceph, s3 ]
 #cinder_backup_driver: "ceph"
 #cinder_backup_share: ""
 #cinder_backup_mount_options_nfs: ""
@@ -780,6 +803,7 @@ horizon_custom_themes:
   - name: c3se_theme
     label: C3SETheme
 
+
 #############################
 # Ironic options
 #############################
@@ -804,11 +828,19 @@ horizon_custom_themes:
 #ironic_inspector_kernel_cmdline_extras: []
 
 # Valid options are [ '', redis, etcd ]
-#ironic_coordination_backend: "{{ 'redis' if enable_redis|bool else 'etcd' if enable_etcd|bool else '' }}"
+#ironic_coordination_backend: "{{ 'valkey' if enable_valkey | bool else 'redis' if enable_redis | bool else 'etcd' if enable_etcd | bool else '' }}"
 
 ######################################
 # Manila - Shared File Systems Options
 ######################################
+#manila_ceph_backends:
+#    - name: "cephfsnative"
+#      type: "cephfs"
+#      cluster: "ceph"
+#      enabled: "{{ enable_manila_backend_cephfs_native | bool }}"
+
+
+
 # HNAS backend configuration
 #hnas_ip:
 #hnas_user:
@@ -817,18 +849,10 @@ horizon_custom_themes:
 #hnas_evs_ip:
 #hnas_file_system_name:
 
-#manila_ceph_backends:
-#    - name: "cephfsnative"
-#      type: "cephfs"
-#      cluster: "ceph"
-#      enabled: "{{ enable_manila_backend_cephfs_native | bool }}"
-
-
 # CephFS backend configuration.
 # External Ceph FS name.
 # By default this is empty to allow Manila to auto-find the first FS available.
 manila_cephfs_filesystem_name: "mira"
-
 
 # Gluster backend configuration
 # The option of glusterfs share layout can be directory or volume
@@ -837,6 +861,11 @@ manila_cephfs_filesystem_name: "mira"
 # The default option of nfs server type is 'Gluster'
 #manila_glusterfs_nfs_server_type:
 
+# Pure Storage FlashBlade configuration
+#manila_flashblade_mgmt_vip:
+#manila_flashblade_data_vip:
+#manila_flashblade_api:
+#
 # Volume layout Options (required)
 # If the glusterfs server requires remote ssh, then you need to fill
 # in 'manila_glusterfs_servers', ssh user 'manila_glusterfs_ssh_user', and ssh password
@@ -861,31 +890,6 @@ manila_cephfs_filesystem_name: "mira"
 #manila_glusterfs_target:
 #manila_glusterfs_mount_point_base:
 
-################################
-# Swift - Object Storage Options
-################################
-# Swift expects block devices to be available for storage. Two types of storage
-# are supported: 1 - storage device with a special partition name and filesystem
-# label, 2 - unpartitioned disk  with a filesystem. The label of this filesystem
-# is used to detect the disk which Swift will be using.
-
-# Swift support two matching modes, valid options are [ prefix, strict ]
-#swift_devices_match_mode: "strict"
-
-# This parameter defines matching pattern: if "strict" mode was selected,
-# for swift_devices_match_mode then swift_device_name should specify the name of
-# the special swift partition for example: "KOLLA_SWIFT_DATA", if "prefix" mode was
-# selected then swift_devices_name should specify a pattern which would match to
-# filesystems' labels prepared for swift.
-#swift_devices_name: "KOLLA_SWIFT_DATA"
-
-# Configure swift upgrade option, due to currently kolla support
-# two upgrade ways for swift: legacy_upgrade and rolling_upgrade
-# The variable "swift_enable_rolling_upgrade: yes" is meaning rolling_upgrade
-# were enabled and opposite
-# Rolling upgrade were enable by default
-#swift_enable_rolling_upgrade: "yes"
-
 ###################################
 # VMware - OpenStack VMware support
 ###################################
@@ -904,8 +908,8 @@ manila_cephfs_filesystem_name: "mira"
 #enable_prometheus_mysqld_exporter: "{{ enable_mariadb | bool }}"
 #enable_prometheus_node_exporter: "{{ enable_prometheus | bool }}"
 #enable_prometheus_cadvisor: "{{ enable_prometheus | bool }}"
-#enable_prometheus_fluentd_integration: "{{ enable_prometheus | bool and enable fluentd | bool }}"
-#enable_prometheus_memcached: "{{ enable_prometheus | bool }}"
+#enable_prometheus_fluentd_integration: "{{ enable_prometheus | bool and enable_fluentd | bool }}"
+#enable_prometheus_memcached_exporter: "{{ enable_prometheus | bool }}"
 #enable_prometheus_alertmanager: "{{ enable_prometheus | bool }}"
 #enable_prometheus_alertmanager_external: "{{ enable_prometheus_alertmanager | bool }}"
 #enable_prometheus_ceph_mgr_exporter: "no"
