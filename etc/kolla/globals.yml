@@ -561,6 +561,9 @@ ceph_manila_keyring: "client.{{ ceph_manila_user }}.keyring"
 
 #keystone_admin_project: "admin"
 
+keystone_public_listen_port: "5001"
+keystone_internal_port: "5001"
+
 # Interval to rotate fernet keys by (in seconds). Must be an interval of
 # 60(1 min), 120(2 min), 180(3 min), 240(4 min), 300(5 min), 360(6 min),
 # 600(10 min), 720(12 min), 900(15 min), 1200(20 min), 1800(30 min),
